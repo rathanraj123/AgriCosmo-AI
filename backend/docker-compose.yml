@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    expose:
+      - 8000
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/agricosmo
+      - REDIS_URL=redis://redis:6379/0
+      - ENV_STATE=production
+      # - GROQ_API_KEY=your_key
+      # - HUGGINGFACE_API_KEY=your_key
+    depends_on:
+      - db
+      - redis
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+    networks:
+      - agricosmo-network
+
+  celery_worker:
+    build: .
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/agricosmo
+      - REDIS_URL=redis://redis:6379/0
+      - ENV_STATE=production
+    depends_on:
+      - db
+      - redis
+    command: celery -A app.core.celery_app worker -l info -Q default,ai_tasks,image_tasks,analytics_tasks
+    networks:
+      - agricosmo-network
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=agricosmo
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - agricosmo-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - agricosmo-network
+
+volumes:
+  postgres_data:
+
+networks:
+  agricosmo-network:
+    driver: bridge
