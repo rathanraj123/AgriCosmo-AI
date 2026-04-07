@@ -27,6 +27,9 @@ RUN addgroup --system appgroup && adduser --system --group appuser
 # Copy project files and change ownership
 COPY --chown=appuser:appgroup . /app
 
+# Ensure the /app directory itself is owned by appuser so it can create new logs
+RUN chown -R appuser:appgroup /app
+
 # Switch to non-root user
 USER appuser
 
