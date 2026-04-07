@@ -33,7 +33,9 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+# Prevent the root level lib from Python, but allow frontend src/lib
+/lib/
+!src/lib/
 lib64/
 parts/
 sdist/
