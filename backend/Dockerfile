@@ -33,6 +33,5 @@ USER appuser
 # Expose port
 EXPOSE 8000
 
-# Make start script executable (if it exists) and run
-# Defaulting to uvicorn/gunicorn directly since start.sh is configured
-CMD ["sh", "-c", "if [ -f start.sh ]; then ./start.sh; else gunicorn app.main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000; fi"]
+# Use direct Uvicorn to avoid Windows CRLF issues in shell scripts and "not found" errors
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
