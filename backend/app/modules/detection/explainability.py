@@ -56,8 +56,13 @@ def generate_heatmap_file(image_bytes: bytes, detection_id: str) -> str:
         output_path = os.path.join(output_dir, f"{detection_id}.jpg")
         cv2.imwrite(output_path, blended)
         
-        logger.info(f"Successfully generated heatmap at {output_path}")
-        return f"/static/heatmaps/{detection_id}.jpg"
+        # Encode as base64 data URI to prevent ephemeral file system issues in cloud deployments
+        import base64
+        _, buffer = cv2.imencode('.jpg', blended)
+        b64_str = base64.b64encode(buffer).decode('utf-8')
+        
+        logger.info(f"Successfully generated heatmap at {output_path} and converted to base64")
+        return f"data:image/jpeg;base64,{b64_str}"
 
     except Exception as e:
         logger.error(f"Failed to generate explainability heatmap: {e}")
