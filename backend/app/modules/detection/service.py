@@ -223,10 +223,14 @@ class DetectionService:
                     uncertainty_reasons.append("Unusual symptom presentation not strongly matching known patterns")
             else:
                 disease_name = self.class_names[top_idx]
-                # Severity and leaf coverage calculations via HSV color segmentation
-                severity_data = calculate_severity_metrics(image_bytes)
-                infected_area_pct = severity_data.get("infected_area_pct", 0.0)
-                severity = severity_data.get("computed_severity", "Low")
+                if disease_name == "normal":
+                    severity = "Low"
+                    infected_area_pct = 0.0
+                else:
+                    # Severity and leaf coverage calculations via HSV color segmentation
+                    severity_data = calculate_severity_metrics(image_bytes)
+                    infected_area_pct = severity_data.get("infected_area_pct", 0.0)
+                    severity = severity_data.get("computed_severity", "Low")
                 
                 # Expert Escalation Logic
                 if severity == "High" and confidence < 0.65:
