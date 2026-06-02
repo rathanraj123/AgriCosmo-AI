@@ -27,6 +27,7 @@ export default function AdminLoginPage() {
       const data = await api.post<{access_token: string}>('/auth/login/access-token', formData);
       logout();
       setToken(data.access_token);
+      localStorage.setItem('agricosmo-token', data.access_token);
       setUserRole('admin');
       setUserName('System Admin');
       navigate('/admin');

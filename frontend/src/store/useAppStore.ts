@@ -598,7 +598,9 @@ export const useAppStore = create<AppState>()(
           chatThreads: [], 
           currentChatThreadId: null,
           userName: 'Researcher',
-          userRole: 'farmer'
+          userRole: 'farmer',
+          activeUploads: [],
+          offlineQueue: []
         });
       },
       offlineQueue: [],

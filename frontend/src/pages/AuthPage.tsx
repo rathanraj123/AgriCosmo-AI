@@ -99,6 +99,7 @@ export default function AuthPage() {
         const data = await api.post<LoginResponse>('/auth/login/access-token', formData);
         logout();
         setToken(data.access_token);
+        localStorage.setItem('agricosmo-token', data.access_token);
 
         let userRole: string = 'farmer';
         try {
