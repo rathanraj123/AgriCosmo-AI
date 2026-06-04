@@ -41,16 +41,25 @@ async def predict_origin(
         except PubChemError as e:
             raise HTTPException(status_code=404, detail=str(e))
 
-    # Run local GIN model inference
-    try:
-        result = await predict_drug_origin(smiles_to_use)
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Drug prediction error: {e}")
-        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
+    # Check Redis Cache
+    from app.cache.redis_cache import redis_cache
+    cached_result = await redis_cache.get_drug_prediction(smiles_to_use)
+    
+    if cached_result:
+        result = cached_result
+    else:
+        # Run local GIN model inference if not cached
+        try:
+            result = await predict_drug_origin(smiles_to_use)
+            # Store in cache asynchronously (fire-and-forget logic applies within async context, but awaiting is safe)
+            await redis_cache.set_drug_prediction(smiles_to_use, result)
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Drug prediction error: {e}")
+            raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
 
-    # Persist to DB
+    # Persist to DB (User history)
     new_prediction = DrugPrediction(
         user_id=current_user.id,
         input_data=input_data_used,
@@ -212,6 +221,13 @@ import httpx
 async def get_similar_compounds(
     smiles: str = Query(..., description="SMILES string to search for similar compounds")
 ):
+    from app.cache.redis_cache import redis_cache
+    
+    # Check Redis Cache First
+    cached_similar = await redis_cache.get_similar_compounds(smiles)
+    if cached_similar is not None:
+        return cached_similar
+
     # Fetch from PubChem fastsimilarity 2D
     url = f"https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/fastsimilarity_2d/smiles/{smiles}/property/CanonicalSMILES,IsomericSMILES,Title/JSON"
     
@@ -220,6 +236,7 @@ async def get_similar_compounds(
             resp = await client.get(url, timeout=15.0)
             
             if resp.status_code != 200:
+                await redis_cache.set_similar_compounds(smiles, [])
                 return []
                 
             data = resp.json()
@@ -241,6 +258,7 @@ async def get_similar_compounds(
                 if len(results) >= 4:
                     break
             
+            await redis_cache.set_similar_compounds(smiles, results)
             return results
     except Exception as e:
         logger.error(f"Error fetching similar compounds: {e}")

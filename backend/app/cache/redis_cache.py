@@ -131,4 +131,25 @@ class RedisCache:
     async def set_prediction(self, image_hash: str, result: Dict[str, Any]) -> bool:
         return await self.set(f"cache:pred:{image_hash}", result, ttl=self.pred_ttl)
 
+    # ─── Drug Classification Cache ─────────────────────────────────────
+    
+    async def get_drug_prediction(self, smiles: str) -> Optional[Dict[str, Any]]:
+        # Use MD5 hash of SMILES for a safe, consistent Redis key
+        key_hash = hashlib.md5(smiles.encode()).hexdigest()
+        return await self.get(f"cache:drug:{key_hash}")
+
+    async def set_drug_prediction(self, smiles: str, result: Dict[str, Any]) -> bool:
+        key_hash = hashlib.md5(smiles.encode()).hexdigest()
+        # Cache for 24 hours
+        return await self.set(f"cache:drug:{key_hash}", result, ttl=86400)
+
+    async def get_similar_compounds(self, smiles: str) -> Optional[list]:
+        key_hash = hashlib.md5(smiles.encode()).hexdigest()
+        return await self.get(f"cache:drug_sim:{key_hash}")
+
+    async def set_similar_compounds(self, smiles: str, results: list) -> bool:
+        key_hash = hashlib.md5(smiles.encode()).hexdigest()
+        # Cache for 7 days (similar compounds rarely change)
+        return await self.set(f"cache:drug_sim:{key_hash}", results, ttl=604800)
+
 redis_cache = RedisCache()
