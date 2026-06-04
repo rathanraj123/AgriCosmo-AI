@@ -407,13 +407,13 @@ export default function AuthPage() {
             transition={{ delay: 0.3 }}
             className="mt-6 text-center"
           >
-            <button
-              onClick={() => { setMode('admin'); setEmail(''); setPassword(''); }}
+            <Link
+              to="/admin/login"
               className="inline-flex items-center gap-1.5 text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors group"
             >
               <Shield className="w-3.5 h-3.5 group-hover:text-rose-500 transition-colors" />
               Admin Access
-            </button>
+            </Link>
           </motion.div>
         )}
 
