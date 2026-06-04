@@ -27,7 +27,7 @@ loguru>=0.7.2
 prometheus-client>=0.20.0
 
 # AI & Plant Disease Image Processing Dependencies
-numpy>=1.26.0
+numpy>=1.26.0,<2.0.0
 Pillow>=10.2.0
 opencv-python-headless>=4.9.0
 ai-edge-litert>=2.1.5
