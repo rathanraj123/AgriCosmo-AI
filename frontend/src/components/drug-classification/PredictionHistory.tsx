@@ -17,7 +17,11 @@ interface HistoryItem {
   created_at: string;
 }
 
-export default function PredictionHistory() {
+interface PredictionHistoryProps {
+  onSelect?: (item: HistoryItem) => void;
+}
+
+export default function PredictionHistory({ onSelect }: PredictionHistoryProps) {
   const { token } = useAppStore();
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -111,10 +115,11 @@ export default function PredictionHistory() {
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
-                  className="p-4 hover:bg-accent/30 transition-colors flex items-center justify-between group"
+                  className={`p-4 transition-colors flex items-center justify-between group ${onSelect ? 'hover:bg-accent/30 cursor-pointer' : ''}`}
+                  onClick={() => onSelect && onSelect(item)}
                 >
                   <div className="space-y-1 flex-1 min-w-0 pr-4">
-                    <p className="font-semibold text-sm truncate text-foreground">
+                    <p className={`font-semibold text-sm truncate transition-colors ${onSelect ? 'group-hover:text-primary' : 'text-foreground'}`}>
                       {item.input_data}
                     </p>
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
@@ -131,7 +136,10 @@ export default function PredictionHistory() {
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      onClick={() => handleDelete(item.id)} 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(item.id);
+                      }} 
                       className="h-8 w-8 p-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive opacity-0 group-hover:opacity-100 transition-all"
                     >
                       <Trash2 className="w-4 h-4" />

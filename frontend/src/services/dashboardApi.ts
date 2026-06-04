@@ -72,4 +72,19 @@ export const dashboardApi = {
     const { data } = await api.get('/dashboard/predictions');
     return data;
   },
+  
+  getAlerts: async () => {
+    const { data } = await api.get('/dashboard/alerts');
+    return data;
+  },
+  
+  getClimate: async () => {
+    const { data } = await api.get('/dashboard/climate');
+    return data;
+  },
+  
+  getOutbreaks: async () => {
+    const { data } = await api.get('/dashboard/outbreaks');
+    return data;
+  }
 };

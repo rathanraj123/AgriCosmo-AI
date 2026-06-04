@@ -1,18 +1,12 @@
 import { motion } from 'framer-motion';
 import { CloudRain, Thermometer, Cloud, Wind, AlertCircle } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-
-const mockClimateData = [
-  { day: 'Mon', temp: 28, humidity: 65, rain: 2 },
-  { day: 'Tue', temp: 29, humidity: 70, rain: 5 },
-  { day: 'Wed', temp: 31, humidity: 82, rain: 15 },
-  { day: 'Thu', temp: 30, humidity: 85, rain: 25 },
-  { day: 'Fri', temp: 27, humidity: 90, rain: 45 },
-  { day: 'Sat', temp: 26, humidity: 92, rain: 60 },
-  { day: 'Sun', temp: 28, humidity: 88, rain: 30 },
-];
+import { useClimateData } from '@/hooks/useDashboard';
 
 export function ClimateCenter() {
+  const { data: climateData } = useClimateData();
+  const data = climateData || [];
+
   return (
     <div className="bg-black/40 border border-slate-800 rounded-2xl p-6">
       <div className="flex items-center justify-between mb-6">
@@ -31,10 +25,10 @@ export function ClimateCenter() {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         {[
-          { label: 'Avg Temp', value: '28.5°C', icon: Thermometer, color: 'text-amber-500' },
-          { label: 'Humidity', value: '82%', icon: Cloud, color: 'text-cyan-500' },
-          { label: 'Precipitation', value: '182mm', icon: CloudRain, color: 'text-blue-500' },
-          { label: 'Wind Spd', value: '12km/h', icon: Wind, color: 'text-slate-400' },
+          { label: 'Avg Temp', value: `${data[data.length-1]?.temp || 28}°C`, icon: Thermometer, color: 'text-amber-500' },
+          { label: 'Humidity', value: `${data[data.length-1]?.humidity || 82}%`, icon: Cloud, color: 'text-cyan-500' },
+          { label: 'Precipitation', value: `${data[data.length-1]?.rain || 15}mm`, icon: CloudRain, color: 'text-blue-500' },
+          { label: 'Wind Spd', value: '12km/h', icon: Wind, color: 'text-slate-400' }, // Wind not provided by simple query, leaving static
         ].map((metric) => (
           <div key={metric.label} className="bg-slate-900/50 rounded-xl p-3 border border-slate-800">
             <metric.icon className={`w-4 h-4 mb-2 ${metric.color}`} />
@@ -46,7 +40,7 @@ export function ClimateCenter() {
 
       <div className="h-[200px] w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={mockClimateData}>
+          <AreaChart data={data}>
             <defs>
               <linearGradient id="colorHumidity" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.3} />

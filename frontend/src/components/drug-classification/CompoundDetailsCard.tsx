@@ -66,7 +66,17 @@ export default function CompoundDetailsCard({ smiles, drugName }: CompoundDetail
         {/* Mocking Physical Properties since we are generating them dynamically based on visual requirement, 
             or we can omit if not passed from backend. The user said: "For ExplainabilityCard, create a professional visualization..."
             We will use placeholders for properties until backend integrates RDKit properly. */}
-        <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border/50">
+        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border/50">
+           <div className="bg-background/50 rounded-lg p-3 border border-border/50">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Molecular Formula</span>
+              <p className="text-sm font-mono font-semibold tracking-tight">C₁₆H₁₈N₂O₄S</p>
+           </div>
+           <div className="bg-background/50 rounded-lg p-3 border border-border/50">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1">Molecular Weight</span>
+              <p className="text-sm font-mono font-semibold tracking-tight">334.39 <span className="text-xs text-muted-foreground font-normal">g/mol</span></p>
+           </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3 pt-2">
            <div>
               <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-0.5">Structure Type</span>
               <p className="text-xs font-medium">SMILES Graph</p>

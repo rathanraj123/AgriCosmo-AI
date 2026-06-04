@@ -75,6 +75,33 @@ export const usePredictions = () => {
   });
 };
 
+export const useAlerts = () => {
+  return useQuery({
+    queryKey: ['dashboard', 'alerts'],
+    queryFn: dashboardApi.getAlerts,
+    staleTime: 1000 * 60 * 5,
+    refetchInterval: 5000,
+  });
+};
+
+export const useClimateData = () => {
+  return useQuery({
+    queryKey: ['dashboard', 'climate'],
+    queryFn: dashboardApi.getClimate,
+    staleTime: 1000 * 60 * 15,
+    refetchInterval: 1000 * 60 * 60, // Refresh every hour since weather doesn't change by the second
+  });
+};
+
+export const useOutbreaks = () => {
+  return useQuery({
+    queryKey: ['dashboard', 'outbreaks'],
+    queryFn: dashboardApi.getOutbreaks,
+    staleTime: 1000 * 60 * 5,
+    refetchInterval: 5000,
+  });
+};
+
 export const useLiveDashboard = () => {
   const queryClient = useQueryClient();
 

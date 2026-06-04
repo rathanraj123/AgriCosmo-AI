@@ -1,15 +1,17 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle, Info, ShieldAlert, X } from 'lucide-react';
-import { useState } from 'react';
-
-const mockAlerts = [
-  { id: 1, type: 'critical', title: 'Fungal Outbreak Risk', desc: 'Humidity anomaly detected in Southern Region. Rice blast probability increased by 24%.' },
-  { id: 2, type: 'warning', title: 'Data Drift Detected', desc: 'Classification model precision dropped by 1.2% in the latest batch evaluation.' },
-  { id: 3, type: 'info', title: 'NASA EarthData Sync', desc: 'Latest precipitation indices synced successfully. 2 new datasets available.' }
-];
+import { useState, useEffect } from 'react';
+import { useAlerts } from '@/hooks/useDashboard';
 
 export function AlertsCenter() {
-  const [alerts, setAlerts] = useState(mockAlerts);
+  const { data: fetchedAlerts } = useAlerts();
+  const [alerts, setAlerts] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (fetchedAlerts) {
+      setAlerts(fetchedAlerts);
+    }
+  }, [fetchedAlerts]);
 
   if (alerts.length === 0) return null;
 

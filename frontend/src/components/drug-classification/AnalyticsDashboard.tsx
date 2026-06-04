@@ -3,9 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { Activity } from 'lucide-react';
 
-export default function AnalyticsDashboard() {
-  // Mock trend data for visualization purposes
-  const data = [
+export default function AnalyticsDashboard({ stats }: { stats?: any }) {
+  // Use real trend data if available, otherwise fallback to mock
+  const data = stats?.trend_data || [
     { day: 'Mon', predictions: 120, accuracy: 92 },
     { day: 'Tue', predictions: 150, accuracy: 94 },
     { day: 'Wed', predictions: 180, accuracy: 95 },

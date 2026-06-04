@@ -6,10 +6,21 @@ interface AIExplanationCardProps {
   predictedClass: string;
   confidenceMap: Record<string, number>;
   drugName?: string;
+  note?: string;
+  smiles?: string;
 }
 
-export default function AIExplanationCard({ predictedClass, confidenceMap, drugName }: AIExplanationCardProps) {
+export default function AIExplanationCard({ predictedClass, confidenceMap, drugName, note, smiles }: AIExplanationCardProps) {
   const mainConfidence = Math.round((confidenceMap[predictedClass] || 0) * 100);
+  
+  // Simple deterministic hash to pick templates
+  const hashString = (str: string) => {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    return Math.abs(hash);
+  };
+  
+  const templateIdx = smiles ? hashString(smiles) % 3 : 0;
   
   // Dynamic Explanation Generation
   const generateExplanation = () => {
@@ -17,20 +28,37 @@ export default function AIExplanationCard({ predictedClass, confidenceMap, drugN
     const secondaryClass = sorted.length > 1 ? sorted[1][0] : '';
     const secondaryConfidence = sorted.length > 1 ? Math.round(sorted[1][1] * 100) : 0;
     
-    let text = `The Graph Isomorphism Network (GIN) model predicts this compound is likely ${predictedClass.toLowerCase()} in origin`;
+    let text = '';
     
     if (mainConfidence >= 80) {
-      text += ` with very high certainty (${mainConfidence}%). Its molecular graph contains highly distinct structural motifs and sub-fragments that are classically associated with ${predictedClass.toLowerCase()}-derived metabolites. `;
+      const templates = [
+        `The Graph Isomorphism Network (GIN) has classified this molecular structure as ${predictedClass.toLowerCase()} with high certainty (${mainConfidence}%). Its topological layout contains heavily conserved motifs characteristic of this domain. `,
+        `Based on the topological graph mapping, the AI strongly leans towards a ${predictedClass.toLowerCase()} origin (${mainConfidence}%). The structural fragments perfectly align with known databases for this class. `,
+        `We have a very definitive prediction here. The graph convolution layers identified a ${predictedClass.toLowerCase()} signature with ${mainConfidence}% confidence, showing minimal cross-domain structural ambiguity. `
+      ];
+      text += templates[templateIdx];
     } else if (mainConfidence >= 60) {
-      text += ` with moderate confidence (${mainConfidence}%). While the primary structural features align with ${predictedClass.toLowerCase()} origins, there is a ${secondaryConfidence}% probability overlap with ${secondaryClass.toLowerCase()} structures. `;
+      const templates = [
+        `The model suggests a ${predictedClass.toLowerCase()} origin, but with moderate confidence (${mainConfidence}%). We are observing a ${secondaryConfidence}% probability overlap with ${secondaryClass.toLowerCase()} metabolomics. `,
+        `This compound leans ${predictedClass.toLowerCase()} (${mainConfidence}%), though the network detected competing ${secondaryClass.toLowerCase()} structural properties that introduce some uncertainty. `,
+        `While the primary prediction is ${predictedClass.toLowerCase()}, the ${mainConfidence}% confidence score indicates significant structural sharing. The secondary ${secondaryClass.toLowerCase()} characteristics cannot be ignored. `
+      ];
+      text += templates[templateIdx];
     } else {
-      text += `. However, this is a low-confidence prediction (${mainConfidence}%). The compound exhibits ambiguous structural features that overlap heavily across multiple biological origin classes, notably ${secondaryClass.toLowerCase()}. `;
+      const templates = [
+        `This is a highly ambiguous, low-confidence prediction (${mainConfidence}%) for ${predictedClass.toLowerCase()}. The molecular graph exhibits features that overlap heavily across multiple origin classes, notably ${secondaryClass.toLowerCase()}. `,
+        `The network struggled to cleanly separate this structure, resulting in a weak ${mainConfidence}% signal for ${predictedClass.toLowerCase()}. It shares deep topological similarities with ${secondaryClass.toLowerCase()} compounds. `,
+        `Classification certainty is very low here (${mainConfidence}% ${predictedClass.toLowerCase()}). The geometric arrangement of atoms presents a hybrid profile, heavily mirroring ${secondaryClass.toLowerCase()} architectures. `
+      ];
+      text += templates[templateIdx];
+    }
+
+    if (note) {
+      text += `\n\nModel Note: ${note} `;
     }
 
     if (drugName) {
-      text += `This aligns with known structural profiles similar to ${drugName}.`;
-    } else {
-      text += `The prediction relies solely on the provided canonical SMILES graph topology.`;
+      text += `This matches general expectations for known derivatives of ${drugName}.`;
     }
 
     return text;

@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Pill, Search, Copy, ClipboardPaste, X } from 'lucide-react';
+import { Loader2, Pill } from 'lucide-react';
 import { toast } from 'sonner';
+
+import InputModeToggle from './InputModeToggle';
+import DrugNameInput from './DrugNameInput';
+import SmilesInput from './SmilesInput';
 
 interface DrugInputFormProps {
   onPredict: (data: { drug_name?: string; smiles?: string }) => void;
@@ -16,37 +18,34 @@ export default function DrugInputForm({ onPredict, isLoading }: DrugInputFormPro
   const [activeTab, setActiveTab] = useState<'name' | 'smiles'>('name');
   const [drugName, setDrugName] = useState('');
   const [smiles, setSmiles] = useState('');
+  const [error, setError] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (activeTab === 'name' && !drugName.trim()) {
-      toast.error('Please enter a drug name');
-      return;
-    }
-    if (activeTab === 'smiles' && !smiles.trim()) {
-      toast.error('Please enter a SMILES string');
-      return;
-    }
+    setError('');
 
     if (activeTab === 'name') {
+      if (!drugName.trim()) {
+        setError('Please enter a drug name');
+        return;
+      }
+      if (drugName.trim().length < 3) {
+        setError('Drug name is too short');
+        return;
+      }
       onPredict({ drug_name: drugName.trim() });
     } else {
+      if (!smiles.trim()) {
+        setError('Please enter a SMILES string');
+        return;
+      }
+      // Basic SMILES validation heuristic
+      if (!/^[A-Za-z0-9@+\-\[\]\(\)\\=#$.]+$/.test(smiles.trim())) {
+        setError('Invalid characters in SMILES string');
+        return;
+      }
       onPredict({ smiles: smiles.trim() });
     }
-  };
-
-  const handlePaste = async () => {
-    try {
-      const text = await navigator.clipboard.readText();
-      setSmiles(text);
-    } catch (err) {
-      toast.error('Failed to read clipboard');
-    }
-  };
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(smiles);
-    toast.success('Copied to clipboard');
   };
 
   return (
@@ -64,121 +63,26 @@ export default function DrugInputForm({ onPredict, isLoading }: DrugInputFormPro
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {/* Animated Segmented Toggle */}
-        <div className="relative flex p-1 mb-6 bg-accent/30 rounded-xl max-w-sm">
-          <button
-            onClick={() => setActiveTab('name')}
-            className={`relative z-10 flex-1 py-2.5 text-sm font-semibold rounded-lg transition-colors ${
-              activeTab === 'name' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground/80'
-            }`}
-          >
-            Drug Name
-          </button>
-          <button
-            onClick={() => setActiveTab('smiles')}
-            className={`relative z-10 flex-1 py-2.5 text-sm font-semibold rounded-lg transition-colors ${
-              activeTab === 'smiles' ? 'text-foreground' : 'text-muted-foreground hover:text-foreground/80'
-            }`}
-          >
-            SMILES String
-          </button>
-          {/* Active Background Animation */}
-          <div
-            className="absolute top-1 bottom-1 w-[calc(50%-4px)] bg-background rounded-lg shadow-sm transition-transform duration-300 ease-out"
-            style={{ transform: activeTab === 'name' ? 'translateX(0)' : 'translateX(calc(100% + 8px))' }}
-          />
-        </div>
+        <InputModeToggle activeTab={activeTab} setActiveTab={setActiveTab} />
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <AnimatePresence mode="wait">
             {activeTab === 'name' ? (
-              <motion.div
+              <DrugNameInput
                 key="name"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-                className="space-y-3"
-              >
-                <label className="text-sm font-semibold text-foreground/80 tracking-wide uppercase">
-                  Common or Chemical Name
-                </label>
-                <div className="relative group">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground transition-colors group-focus-within:text-primary" />
-                  <Input
-                    placeholder="e.g. Aspirin, Penicillin, Taxol"
-                    className="pl-12 h-14 text-lg rounded-xl bg-background/50 border-border/50 focus-visible:ring-primary/30 transition-all"
-                    value={drugName}
-                    onChange={(e) => setDrugName(e.target.value)}
-                    disabled={isLoading}
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground/70">
-                  Automatically resolved to a canonical SMILES string via PubChem.
-                </p>
-              </motion.div>
+                value={drugName}
+                onChange={(val) => { setDrugName(val); setError(''); }}
+                disabled={isLoading}
+                error={error}
+              />
             ) : (
-              <motion.div
+              <SmilesInput
                 key="smiles"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-                className="space-y-3"
-              >
-                <div className="flex justify-between items-end">
-                  <label className="text-sm font-semibold text-foreground/80 tracking-wide uppercase">
-                    Canonical SMILES
-                  </label>
-                  <span className="text-xs font-mono text-muted-foreground bg-accent/50 px-2 py-0.5 rounded-md">
-                    {smiles.length} chars
-                  </span>
-                </div>
-                <div className="relative">
-                  <Textarea
-                    placeholder="e.g. CC(=O)Oc1ccccc1C(=O)O"
-                    className="min-h-[120px] text-base font-mono rounded-xl bg-background/50 border-border/50 focus-visible:ring-primary/30 transition-all resize-none p-4 pb-12"
-                    value={smiles}
-                    onChange={(e) => setSmiles(e.target.value)}
-                    disabled={isLoading}
-                  />
-                  {/* Action Buttons inside Textarea */}
-                  <div className="absolute bottom-3 right-3 flex items-center gap-2">
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      className="h-7 px-2.5 text-xs rounded-md bg-accent/50 hover:bg-accent hover:text-foreground"
-                      onClick={handlePaste}
-                    >
-                      <ClipboardPaste className="w-3.5 h-3.5 mr-1.5" />
-                      Paste
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      className="h-7 px-2.5 text-xs rounded-md bg-accent/50 hover:bg-accent hover:text-foreground"
-                      onClick={handleCopy}
-                      disabled={!smiles}
-                    >
-                      <Copy className="w-3.5 h-3.5 mr-1.5" />
-                      Copy
-                    </Button>
-                    {smiles && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 w-7 p-0 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                        onClick={() => setSmiles('')}
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </motion.div>
+                value={smiles}
+                onChange={(val) => { setSmiles(val); setError(''); }}
+                disabled={isLoading}
+                error={error}
+              />
             )}
           </AnimatePresence>
 

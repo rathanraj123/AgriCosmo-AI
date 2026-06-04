@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
+import CountUp from 'react-countup';
 
 interface ConfidenceGaugeProps {
   confidence: number; // 0 to 1
@@ -7,45 +8,28 @@ interface ConfidenceGaugeProps {
 }
 
 export default function ConfidenceGauge({ confidence, origin }: ConfidenceGaugeProps) {
-  const [animatedValue, setAnimatedValue] = useState(0);
-
-  useEffect(() => {
-    // Animate the value on mount or change
-    const duration = 1000;
-    const steps = 60;
-    const stepTime = duration / steps;
-    let currentStep = 0;
-    
-    const targetValue = Math.round(confidence * 1000) / 10; // e.g. 44.3
-
-    const interval = setInterval(() => {
-      currentStep++;
-      setAnimatedValue(Math.min((targetValue * currentStep) / steps, targetValue));
-      if (currentStep >= steps) {
-        clearInterval(interval);
-      }
-    }, stepTime);
-
-    return () => clearInterval(interval);
-  }, [confidence]);
-
   const percentage = Math.round(confidence * 100);
   
-  let color = 'text-green-500';
+  let colorClass = 'text-green-500';
   let strokeColor = '#22c55e'; // green-500
-  let bgColor = 'rgba(34, 197, 94, 0.1)';
   let glowColor = 'rgba(34, 197, 94, 0.4)';
+  let label = 'High Reliability';
 
   if (percentage < 60) {
-    color = 'text-red-500';
+    colorClass = 'text-red-500';
     strokeColor = '#ef4444'; // red-500
-    bgColor = 'rgba(239, 68, 68, 0.1)';
     glowColor = 'rgba(239, 68, 68, 0.4)';
-  } else if (percentage < 80) {
-    color = 'text-yellow-500';
-    strokeColor = '#eab308'; // yellow-500
-    bgColor = 'rgba(234, 179, 8, 0.1)';
-    glowColor = 'rgba(234, 179, 8, 0.4)';
+    label = 'Low Reliability';
+  } else if (percentage < 75) {
+    colorClass = 'text-amber-500';
+    strokeColor = '#f59e0b'; // amber-500
+    glowColor = 'rgba(245, 158, 11, 0.4)';
+    label = 'Needs Validation';
+  } else if (percentage < 90) {
+    colorClass = 'text-blue-500';
+    strokeColor = '#3b82f6'; // blue-500
+    glowColor = 'rgba(59, 130, 246, 0.4)';
+    label = 'Moderate Reliability';
   }
 
   // Calculate SVG stroke attributes
@@ -55,6 +39,11 @@ export default function ConfidenceGauge({ confidence, origin }: ConfidenceGaugeP
 
   return (
     <div className="relative flex flex-col items-center justify-center">
+      {/* Micro-label Top */}
+      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4">
+        Confidence Score
+      </span>
+
       {/* SVG Circular Progress */}
       <div className="relative w-40 h-40 flex items-center justify-center">
         <svg
@@ -68,14 +57,14 @@ export default function ConfidenceGauge({ confidence, origin }: ConfidenceGaugeP
             r={radius}
             fill="transparent"
             stroke="currentColor"
-            strokeWidth="12"
-            className="text-muted/30"
+            strokeWidth="8"
+            className="text-muted/20"
           />
           {/* Progress Track */}
           <motion.circle
             initial={{ strokeDashoffset: circumference }}
             animate={{ strokeDashoffset }}
-            transition={{ duration: 1.2, ease: "easeOut" }}
+            transition={{ duration: 2, ease: "easeOut" }}
             cx="70"
             cy="70"
             r={radius}
@@ -92,13 +81,18 @@ export default function ConfidenceGauge({ confidence, origin }: ConfidenceGaugeP
 
         {/* Center Content */}
         <div className="absolute flex flex-col items-center justify-center text-center">
-          <span className={`text-4xl font-black font-mono tracking-tighter ${color} tabular-nums`}>
-            {animatedValue.toFixed(1)}%
+          <span className={`text-5xl font-black font-mono tracking-tighter ${colorClass} tabular-nums`}>
+            <CountUp end={percentage} duration={2} />%
           </span>
-          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mt-1">
-            Confidence
+          <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest mt-1 opacity-70">
+            Model Certainty
           </span>
         </div>
+      </div>
+
+      {/* Micro-label Bottom */}
+      <div className={`mt-6 px-4 py-1.5 rounded-full border border-current/20 bg-current/5 ${colorClass} font-semibold text-xs uppercase tracking-wider`}>
+        {label}
       </div>
     </div>
   );

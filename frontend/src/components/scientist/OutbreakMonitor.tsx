@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { Activity, AlertTriangle, Bug, Leaf, TrendingUp } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { useMemo, useState, useEffect } from 'react';
+import { useOutbreaks } from '@/hooks/useDashboard';
 
 const icons: any = {
   'Fungal': Leaf,
@@ -12,86 +13,19 @@ const icons: any = {
 };
 
 export function OutbreakMonitor() {
-  const scanHistory = useAppStore(s => s.scanHistory);
+  const { data: fetchedOutbreaks } = useOutbreaks();
+  const [liveOutbreaks, setLiveOutbreaks] = useState<any[]>([]);
 
-  const outbreaks = useMemo(() => {
-    if (scanHistory.length === 0) return [];
-    
-    // Group scans by disease
-    const diseaseMap: Record<string, { count: number, totalConfidence: number, type: string }> = {};
-    scanHistory.forEach(scan => {
-      const name = scan.diseaseName;
-      if (name === 'Healthy') return;
-      
-      let type = 'Unknown';
-      if (name.toLowerCase().includes('blast') || name.toLowerCase().includes('spot') || name.toLowerCase().includes('blight') || name.toLowerCase().includes('rust')) {
-        type = 'Fungal';
-      } else if (name.toLowerCase().includes('bacterial')) {
-        type = 'Bacterial';
-      } else if (name.toLowerCase().includes('borer') || name.toLowerCase().includes('hopper')) {
-        type = 'Pest';
-      }
-
-      if (!diseaseMap[name]) {
-        diseaseMap[name] = { count: 0, totalConfidence: 0, type };
-      }
-      diseaseMap[name].count += 1;
-      diseaseMap[name].totalConfidence += (scan.confidence || 0.85);
-    });
-
-    const results = Object.entries(diseaseMap).map(([disease, data]) => {
-      const avgConfidence = data.totalConfidence / data.count;
-      const risk = Math.min(100, Math.round((data.count * 10) + (avgConfidence * 20)));
-      
-      let color = 'text-cyan-500';
-      let bg = 'bg-cyan-500/10';
-      if (risk > 70) { color = 'text-rose-500'; bg = 'bg-rose-500/10'; }
-      else if (risk > 40) { color = 'text-amber-500'; bg = 'bg-amber-500/10'; }
-
-      return {
-        disease,
-        type: data.type,
-        risk,
-        trend: `+${data.count}%`, // Mocking trend based on count for realtime effect
-        regions: data.count, // Mapping regions to scan count roughly
-        icon: icons[data.type] || Activity,
-        color,
-        bg
-      };
-    });
-
-    return results.sort((a, b) => b.risk - a.risk).slice(0, 4);
-  }, [scanHistory]);
-
-  const [liveOutbreaks, setLiveOutbreaks] = useState(outbreaks);
-
-  // Initialize and update live data when base outbreaks change
   useEffect(() => {
-    if (outbreaks.length === 0) {
-      // Fallback live data if empty
-      setLiveOutbreaks([
-        { disease: 'Rice Blast', type: 'Fungal', risk: 85, trend: '+12%', regions: 14, icon: Leaf, color: 'text-rose-500', bg: 'bg-rose-500/10' },
-        { disease: 'Bacterial Blight', type: 'Bacterial', risk: 62, trend: '+4%', regions: 8, icon: Activity, color: 'text-amber-500', bg: 'bg-amber-500/10' },
-        { disease: 'Brown Spot', type: 'Fungal', risk: 45, trend: '-2%', regions: 5, icon: Leaf, color: 'text-cyan-500', bg: 'bg-cyan-500/10' },
-        { disease: 'Stem Borer', type: 'Pest', risk: 30, trend: '-8%', regions: 3, icon: Bug, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-      ]);
-    } else {
-      setLiveOutbreaks(outbreaks);
-    }
-  }, [outbreaks]);
-
-  // Simulate real-time continuous data drift
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setLiveOutbreaks(prev => prev.map(o => {
-        // Drift risk by -2 to +2
-        const drift = Math.floor(Math.random() * 5) - 2;
-        const newRisk = Math.max(10, Math.min(99, o.risk + drift));
-        return { ...o, risk: newRisk };
+    if (fetchedOutbreaks) {
+      // Map icons string to actual lucide components
+      const processed = fetchedOutbreaks.map((o: any) => ({
+        ...o,
+        icon: icons[o.type] || Activity
       }));
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
+      setLiveOutbreaks(processed);
+    }
+  }, [fetchedOutbreaks]);
 
   return (
     <div className="bg-black/40 border border-slate-800 rounded-2xl p-6">

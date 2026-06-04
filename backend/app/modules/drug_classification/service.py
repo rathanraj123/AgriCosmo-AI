@@ -324,7 +324,105 @@ async def resolve_smiles_from_name(drug_name: str) -> str:
 async def predict_drug_origin(smiles: str) -> dict:
     """Run drug origin prediction using the local GIN model."""
     try:
-        return drug_ml_service.predict(smiles)
+        from rdkit.Chem import Descriptors, rdMolDescriptors, AllChem
+        import rdkit.Chem.inchi as inchi
+        
+        mol = Chem.MolFromSmiles(smiles)
+        if mol is None:
+            raise InvalidSMILES("Invalid SMILES string.")
+
+        # Run GIN prediction
+        result = drug_ml_service.predict(smiles)
+
+        # 1. Identifiers
+        canon_smiles = Chem.MolToSmiles(mol, isomericSmiles=True)
+        inchi_str = inchi.MolToInchi(mol)
+        inchi_key = inchi.MolToInchiKey(mol)
+
+        # 2. 2D SVG Generation
+        try:
+            from rdkit.Chem.Draw import rdMolDraw2D
+            drawer = rdMolDraw2D.MolDraw2DSVG(400, 400)
+            mol_2d = Chem.RemoveHs(mol)
+            rdMolDraw2D.PrepareAndDrawMolecule(drawer, mol_2d)
+            drawer.FinishDrawing()
+            svg_2d = drawer.GetDrawingText()
+        except Exception:
+            svg_2d = None
+
+        # 3. Molfiles (2D and 3D)
+        molfile_2d = None
+        try:
+            mol_2d_copy = Chem.Mol(mol)
+            AllChem.Compute2DCoords(mol_2d_copy)
+            molfile_2d = Chem.MolToMolBlock(mol_2d_copy)
+        except Exception:
+            pass
+
+        molfile_3d = None
+        try:
+            mol_3d = Chem.AddHs(mol)
+            res = AllChem.EmbedMolecule(mol_3d, randomSeed=42)
+            if res >= 0:
+                AllChem.MMFFOptimizeMolecule(mol_3d)
+                molfile_3d = Chem.MolToMolBlock(mol_3d)
+            else:
+                molfile_3d = molfile_2d # fallback
+        except Exception:
+            molfile_3d = molfile_2d
+
+        # 4. Descriptors
+        exact_mass = Descriptors.ExactMolWt(mol)
+        mw = Descriptors.MolWt(mol)
+        formula = rdMolDescriptors.CalcMolFormula(mol)
+        atom_count = mol.GetNumAtoms()
+        heavy_atom_count = mol.GetNumHeavyAtoms()
+        formal_charge = Chem.GetFormalCharge(mol)
+        ring_count = rdMolDescriptors.CalcNumRings(mol)
+        rotatable_bonds = rdMolDescriptors.CalcNumRotatableBonds(mol)
+
+        logp = Descriptors.MolLogP(mol)
+        hbd = rdMolDescriptors.CalcNumHBD(mol)
+        hba = rdMolDescriptors.CalcNumHBA(mol)
+        tpsa = Descriptors.TPSA(mol)
+
+        # 5. Lipinski Eval
+        score = 0
+        if mw <= 500: score += 1
+        if logp <= 5: score += 1
+        if hba <= 10: score += 1
+        if hbd <= 5: score += 1
+        
+        if score == 4:
+            drug_like = "Drug-Like"
+        elif score == 3:
+            drug_like = "Borderline"
+        else:
+            drug_like = "Poor Drug-Likeness"
+
+        result["molecular_details"] = {
+            "canonical_smiles": canon_smiles,
+            "inchi": inchi_str,
+            "inchi_key": inchi_key,
+            "molfile_2d": molfile_2d,
+            "molfile_3d": molfile_3d,
+            "formula": formula,
+            "exact_mass": round(exact_mass, 4) if exact_mass else None,
+            "mw": round(mw, 2) if mw else None,
+            "atom_count": atom_count,
+            "heavy_atom_count": heavy_atom_count,
+            "formal_charge": formal_charge,
+            "ring_count": ring_count,
+            "rotatable_bonds": rotatable_bonds,
+            "logp": round(logp, 2) if logp else None,
+            "hbd": hbd,
+            "hba": hba,
+            "tpsa": round(tpsa, 2) if tpsa else None,
+            "lipinski_score": score,
+            "is_drug_like": drug_like,
+            "svg_2d": svg_2d
+        }
+        return result
     except InvalidSMILES as e:
         raise HTTPException(status_code=400, detail=str(e))
     except DrugPredictionFailed as e:

@@ -102,12 +102,31 @@ async def get_spread_simulation(
     from app.services.disease_trend_service import DiseaseTrendService
     from app.core.cache import cache_with_ttl
     
-    # We create a small inner function to cache it, or just use the cache directly
     @cache_with_ttl(ttl_seconds=300, key_prefix=f"dash:sim:{days}")
     async def fetch_sim(db_sess, u_id, d):
         return await DiseaseTrendService.get_spread_simulation(db_sess, days=d, user_id=u_id)
         
     return await fetch_sim(db, current_user.id, days)
+
+@router.get("/alerts")
+async def get_alerts(
+    db: AsyncSession = Depends(get_db),
+    current_user = Depends(deps.require_scientist)
+):
+    return await DashboardService.get_alerts(db, user_id=current_user.id)
+
+@router.get("/climate")
+async def get_climate(
+    current_user = Depends(deps.require_scientist)
+):
+    return await DashboardService.get_climate()
+
+@router.get("/outbreaks")
+async def get_outbreaks(
+    db: AsyncSession = Depends(get_db),
+    current_user = Depends(deps.require_scientist)
+):
+    return await DashboardService.get_outbreaks(db, user_id=current_user.id)
 
 @router.websocket("/ws/dashboard")
 async def websocket_dashboard(websocket: WebSocket):

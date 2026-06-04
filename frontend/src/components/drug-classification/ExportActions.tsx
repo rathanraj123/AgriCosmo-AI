@@ -4,13 +4,75 @@ import { Button } from '@/components/ui/button';
 import { Download, FileJson, FileText, Share2, Printer } from 'lucide-react';
 import { toast } from 'sonner';
 
-export default function ExportActions() {
+interface ExportActionsProps {
+  predictionData?: any;
+}
+
+export default function ExportActions({ predictionData }: ExportActionsProps) {
   const handleExport = (format: string) => {
-    toast.success(`Exporting as ${format}...`);
-    // Simulated export delay
-    setTimeout(() => {
-      toast.success(`${format} export complete`);
-    }, 1000);
+    if (!predictionData) {
+      toast.error('No prediction data available to export');
+      return;
+    }
+
+    if (format === 'JSON') {
+      const exportData = {
+        app: "AgriCosmo AI",
+        timestamp: new Date().toISOString(),
+        prediction: predictionData
+      };
+      const jsonData = JSON.stringify(exportData, null, 2);
+      const blob = new Blob([jsonData], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const downloadAnchorNode = document.createElement('a');
+      downloadAnchorNode.href = url;
+      downloadAnchorNode.download = `prediction_${predictionData.id || 'export'}.json`;
+      document.body.appendChild(downloadAnchorNode);
+      downloadAnchorNode.click();
+      downloadAnchorNode.remove();
+      URL.revokeObjectURL(url);
+      toast.success('JSON Export complete');
+    } else if (format === 'CSV') {
+      const csvContent = `ID,Input,Predicted_Class,Confidence_Plant,Confidence_Fungal,Confidence_Bacterial\n${predictionData.id || ''},"${predictionData.smiles || predictionData.drug_name || ''}",${predictionData.predicted_class},${predictionData.confidence?.Plant || 0},${predictionData.confidence?.Fungal || 0},${predictionData.confidence?.Bacterial || 0}\n`;
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const downloadAnchorNode = document.createElement('a');
+      downloadAnchorNode.href = url;
+      downloadAnchorNode.download = "prediction_export.csv";
+      document.body.appendChild(downloadAnchorNode);
+      downloadAnchorNode.click();
+      downloadAnchorNode.remove();
+      URL.revokeObjectURL(url);
+      toast.success('CSV Export complete');
+    } else if (format === 'PDF') {
+      window.print();
+      toast.success('Opening print dialog for PDF...');
+    } else if (format === 'Share') {
+      const shareData = {
+        title: 'AgriCosmo Drug Classification Results',
+        text: 'Check out these structural classification results from AgriCosmo AI.',
+        url: window.location.href,
+      };
+      
+      if (navigator.share) {
+        navigator.share(shareData)
+          .then(() => toast.success('Shared successfully'))
+          .catch((err) => {
+            if (err.name !== 'AbortError') {
+              toast.error('Error sharing results');
+            }
+          });
+      } else {
+        // Fallback to clipboard
+        navigator.clipboard.writeText(window.location.href);
+        toast.success('Link copied to clipboard to share');
+      }
+    } else {
+      toast.success(`Exporting as ${format}...`);
+      setTimeout(() => {
+        toast.success(`${format} export complete`);
+      }, 1000);
+    }
   };
 
   return (
