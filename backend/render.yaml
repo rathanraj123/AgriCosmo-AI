@@ -3,8 +3,9 @@ services:
   - type: web
     name: agricosmo-api
     env: python
+    rootDir: backend
     buildCommand: pip install -r requirements.txt
-    startCommand: ./start.sh
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
@@ -16,30 +17,6 @@ services:
         generateValue: true
       - key: DATABASE_URL
         sync: false # Set via Render dashboard
-      - key: REDIS_URL
-        sync: false
-      - key: SUPABASE_URL
-        sync: false
-      - key: SUPABASE_SERVICE_ROLE_KEY
-        sync: false
-      - key: GROQ_API_KEY
-        sync: false
-
-  # Background Celery Worker
-  - type: worker
-    name: agricosmo-worker
-    env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: celery -A app.core.celery_app worker -l info --concurrency=2
-    envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.0
-      - key: ENVIRONMENT
-        value: production
-      - key: LOW_MEMORY_MODE
-        value: "true"
-      - key: DATABASE_URL
-        sync: false # Must match web service
       - key: REDIS_URL
         sync: false
       - key: SUPABASE_URL
