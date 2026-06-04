@@ -159,6 +159,17 @@ async def lifespan(app: FastAPI):
             
     asyncio.create_task(preload_ml_models())
 
+    # 2b. Load Drug GIN model (runs in thread to avoid blocking the event loop)
+    async def preload_drug_model():
+        try:
+            from app.modules.drug_classification.service import drug_ml_service
+            await asyncio.to_thread(drug_ml_service.load_model)
+            logger.info("Drug GIN model loaded successfully.")
+        except Exception as e:
+            logger.error(f"Drug GIN model failed to load: {e}")
+
+    asyncio.create_task(preload_drug_model())
+
 
 
     # 3. Initialize Redis L1 cache connection and start WebSocket Redis listener

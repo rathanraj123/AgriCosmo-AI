@@ -70,6 +70,9 @@ class BaseConfig(BaseSettings):
     MODEL_PATH: str = "model.tflite"
     UPLOAD_DIR: str = "static/uploads"
     
+    # Microservices
+    PLANTAI_MICROSERVICE_URL: str = "http://localhost:8001"
+    
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     @model_validator(mode='after')

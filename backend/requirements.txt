@@ -33,3 +33,8 @@ opencv-python-headless>=4.9.0
 ai-edge-litert>=2.1.5
 
 supabase>=2.3.0
+
+# Drug Classification (GIN Model — direct inference, no microservice)
+rdkit==2023.9.6
+torch==2.2.1+cpu
+torch-geometric==2.5.2

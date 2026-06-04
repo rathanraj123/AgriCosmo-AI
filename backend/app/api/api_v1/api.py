@@ -18,3 +18,6 @@ api_router.include_router(dashboard.router, prefix="/dashboard", tags=["Scientis
 api_router.include_router(insights.router, prefix="/ai", tags=["AI Insights"])
 api_router.include_router(export.router, prefix="/export", tags=["Data Exports"])
 api_router.include_router(notifications.router, prefix="/notifications", tags=["System Notifications"])
+
+from app.modules.drug_classification import router as drug_classification
+api_router.include_router(drug_classification.router, prefix="/drug-classification", tags=["Drug Classification"])

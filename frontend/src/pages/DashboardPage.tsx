@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { 
   Upload, History, ScanLine, ArrowRight, Leaf, 
   AlertTriangle, Thermometer, CloudRain, TrendingUp, TrendingDown,
-  Newspaper, MapPin, Zap, Activity, Info, X, DollarSign, Sprout
+  Newspaper, MapPin, Zap, Activity, Info, X, DollarSign, Sprout, Pill
 } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -337,7 +337,7 @@ export default function DashboardPage() {
           <div className="lg:col-span-8 space-y-6">
             
             {/* Quick Actions & AI Recommendations */}
-            <div className="grid sm:grid-cols-2 gap-6">
+            <div className="grid sm:grid-cols-3 gap-6">
               <motion.div custom={4} variants={fadeUp} className="glass p-6 rounded-3xl border border-border/40 hover:border-emerald-500/30 transition-colors relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
                   <Zap className="w-24 h-24 text-emerald-500 -rotate-12" />
@@ -346,14 +346,14 @@ export default function DashboardPage() {
                   <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center mb-4">
                     <Leaf className="w-6 h-6 text-emerald-500" />
                   </div>
-                  <h3 className="font-bold text-xl mb-2">AI Farming Insights</h3>
+                  <h3 className="font-bold text-xl mb-2">AI Farming</h3>
                   <p className="text-sm text-muted-foreground font-medium mb-4 line-clamp-2">
                     {weatherData?.humidity_percent && weatherData.humidity_percent > 70 
-                      ? "High humidity detected. Proactive fungal spray recommended within 24hrs."
-                      : "Conditions are optimal. Maintain regular irrigation schedule."}
+                      ? "High humidity. Spray recommended."
+                      : "Optimal conditions. Maintain watering."}
                   </p>
                   <Link to="/history" className="text-emerald-500 font-bold text-sm flex items-center gap-1 hover:gap-2 transition-all">
-                    View full AI report <ArrowRight className="w-4 h-4" />
+                    View report <ArrowRight className="w-4 h-4" />
                   </Link>
                 </div>
               </motion.div>
@@ -366,20 +366,38 @@ export default function DashboardPage() {
                   <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 flex items-center justify-center mb-4">
                     <Thermometer className="w-6 h-6 text-cyan-500" />
                   </div>
-                  <h3 className="font-bold text-xl mb-2">Weather Intelligence</h3>
+                  <h3 className="font-bold text-xl mb-2">Weather</h3>
                   <div className="grid grid-cols-2 gap-2 mb-3">
                     <div>
                       <p className="text-xs text-muted-foreground">Temp</p>
                       <p className="font-black text-lg">{weatherData?.temperature_c ? `${Math.round(weatherData.temperature_c)}°C` : '—'}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-muted-foreground">Rainfall</p>
+                      <p className="text-xs text-muted-foreground">Rain</p>
                       <p className="font-black text-lg">{weatherData?.rainfall_mm ? `${weatherData.rainfall_mm}mm` : '0mm'}</p>
                     </div>
                   </div>
                   <p className="text-cyan-500 font-bold text-sm flex items-center gap-1">
-                    {weatherData?.rainfall_mm && weatherData.rainfall_mm > 0 ? "Rain expected today" : "Clear skies expected"}
+                    {weatherData?.rainfall_mm && weatherData.rainfall_mm > 0 ? "Rain expected" : "Clear skies"}
                   </p>
+                </div>
+              </motion.div>
+
+              <motion.div custom={5.5} variants={fadeUp} className="glass p-6 rounded-3xl border border-border/40 hover:border-indigo-500/30 transition-colors relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
+                  <Pill className="w-24 h-24 text-indigo-500 -rotate-12" />
+                </div>
+                <div className="relative z-10">
+                  <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center mb-4">
+                    <Pill className="w-6 h-6 text-indigo-500" />
+                  </div>
+                  <h3 className="font-bold text-xl mb-2">Drug Origin</h3>
+                  <p className="text-sm text-muted-foreground font-medium mb-4 line-clamp-2">
+                    Predict biological origin of chemical compounds via SMILES.
+                  </p>
+                  <Link to="/drug-classification" className="text-indigo-500 font-bold text-sm flex items-center gap-1 hover:gap-2 transition-all">
+                    Classify <ArrowRight className="w-4 h-4" />
+                  </Link>
                 </div>
               </motion.div>
             </div>

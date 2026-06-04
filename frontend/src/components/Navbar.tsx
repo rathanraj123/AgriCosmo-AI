@@ -32,6 +32,7 @@ export default function Navbar() {
     { to: '/dashboard', label: 'Dashboard' },
     { to: '/upload', label: 'Upload' },
     { to: '/history', label: 'History' },
+    { to: '/drug-classification', label: 'Drug Classification' },
     { to: '/chat', label: 'Expert Chat' },
   ] : [
     { to: '/', label: 'Home' },
@@ -43,6 +44,7 @@ export default function Navbar() {
     { to: '/scientist/research', label: 'Research Hub' },
     { to: '/upload', label: 'Upload' },
     { to: '/history', label: 'History' },
+    { to: '/drug-classification', label: 'Drug Classification' },
     { to: '/chat', label: 'Expert Chat' },
   ];
 

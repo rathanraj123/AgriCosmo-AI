@@ -24,6 +24,8 @@ services:
         sync: false
       - key: GROQ_API_KEY
         sync: false
+      - key: PLANTAI_MICROSERVICE_URL
+        sync: false
 
   # Background Celery Worker
   - type: worker

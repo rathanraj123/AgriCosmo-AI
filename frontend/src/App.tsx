@@ -28,6 +28,7 @@ const ScientistDashboard = lazy(() => import("./pages/scientist/ScientistDashboa
 const ResearchAnalyticsPage = lazy(() => import("./pages/scientist/ResearchAnalyticsPage"));
 const ChatPage = lazy(() => import("./pages/ChatPage"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
+const DrugClassificationPage = lazy(() => import("./pages/DrugClassification"));
 
 
 // The scene synchronizer connects React Router to the 3D Camera System
@@ -118,6 +119,7 @@ const App = () => {
                 <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
                 <Route path="/upload" element={<ProtectedRoute><UploadPage /></ProtectedRoute>} />
                 <Route path="/history" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
+                <Route path="/drug-classification" element={<ProtectedRoute><DrugClassificationPage /></ProtectedRoute>} />
                 <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
                 <Route path="/chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
 
