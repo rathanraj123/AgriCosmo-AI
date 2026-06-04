@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { useAppStore } from '@/store/useAppStore';
+import { API_URL } from '@/config';
 
 import DrugInputForm from '@/components/drug-classification/DrugInputForm';
 import PredictionCard from '@/components/drug-classification/PredictionCard';
@@ -16,7 +17,7 @@ export default function DrugClassificationPage() {
   const handlePredict = async (data: { drug_name?: string; smiles?: string }) => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:8000/api/v1/drug-classification/predict', {
+      const res = await fetch(`${API_URL}/drug-classification/predict`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

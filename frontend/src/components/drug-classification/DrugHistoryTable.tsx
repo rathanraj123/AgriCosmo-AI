@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2, Trash2, History } from 'lucide-react';
 import { useAppStore } from '@/store/useAppStore';
 import { toast } from 'sonner';
+import { API_URL } from '@/config';
 
 interface HistoryItem {
   id: string;
@@ -20,7 +21,7 @@ export default function DrugHistoryTable() {
 
   const fetchHistory = async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/v1/drug-classification/history', {
+      const res = await fetch(`${API_URL}/drug-classification/history`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
@@ -40,7 +41,7 @@ export default function DrugHistoryTable() {
 
   const handleDelete = async (id: string) => {
     try {
-      const res = await fetch(`http://localhost:8000/api/v1/drug-classification/history/${id}`, {
+      const res = await fetch(`${API_URL}/drug-classification/history/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
