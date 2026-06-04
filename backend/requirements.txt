@@ -35,6 +35,8 @@ ai-edge-litert>=2.1.5
 supabase>=2.3.0
 
 # Drug Classification (GIN Model — direct inference, no microservice)
+# PyTorch CPU-only build from official index (works on Render Linux)
+--extra-index-url https://download.pytorch.org/whl/cpu
 rdkit==2023.9.6
 torch==2.2.1+cpu
 torch-geometric==2.5.2
